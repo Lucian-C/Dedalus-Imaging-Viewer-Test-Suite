@@ -38,6 +38,10 @@ export class ImageViewerPage {
     await this.welcomePopupAcceptButton.click();
   }
 
+  async getPatientInformation() {
+    return this.patientInformationOverlay;
+  }
+
   async getSeriesButton(seriesNumber: number) {
     return this.seriesSelectionPanel.getByTestId(`series-${seriesNumber}-button`);
   }
