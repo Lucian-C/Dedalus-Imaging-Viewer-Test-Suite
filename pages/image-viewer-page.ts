@@ -52,6 +52,28 @@ export class ImageViewerPage {
     await expect(seriesButton).toHaveClass(/\bbg-blue-600\b/);
   }
 
+  //compared with isSeriesHighlighted, it also checks that the other series is gray
+  //nice to have as alternative: visual testing
+  //this method also supports dynamic number of series
+  async verifySeriesHighlighted(seriesNumber: number) {
+    const allSeriesButtons = this.seriesSelectionPanel.locator('[data-testid^="series-"][data-testid$="-button"]');
+    const buttonsCount = await allSeriesButtons.count();
+
+    for (let i = 0; i < buttonsCount; i++) {
+      const currentButton = allSeriesButtons.nth(i);
+      if (i + 1 === seriesNumber) {
+        await expect(currentButton).toHaveClass(/\bbg-blue-600\b/);
+      }
+      else {
+        await expect(currentButton).toHaveClass(/\bbg-gray-700\b/);
+      }
+    }
+
+    //alternative, although doesn't cover the specifity of the requirement: 
+    // "Test that series highlighting (blue selection) updates correctly"
+    //await expect(currentButton).toHaveAttribute('aria-pressed', 'true'); // and 'false' otherwise
+  }
+
   async getNumberOfImages(seriesNumber: number): Promise<number> {
     const seriesButton = await this.getSeriesButton(seriesNumber);
 
@@ -74,19 +96,16 @@ export class ImageViewerPage {
     await this.page.mouse.wheel(0, direction === 'down' ? 10 : -10);
   }
 
-  async waitForImageToBeRendered(): Promise<ImageRenderedDetail | null> {
-    return await this.page.evaluate(() => {
-      return new Promise<ImageRenderedDetail | null>((resolve) => {
-        const imageViewport = document.querySelector('[data-testid="medical-image-viewport"]');
-
-        if (!imageViewport) return resolve(null);
-
-        const eventHandler = (event: any) => {
-          imageViewport.removeEventListener('imagerendered', eventHandler);
-          resolve(event.detail);
-        };
-
-        imageViewport.addEventListener('imagerendered', eventHandler);
+  async waitForImageRendered(): Promise<ImageRenderedDetail> {
+    return this.medicalImageViewer.evaluate(viewportElement => {
+      return new Promise<ImageRenderedDetail>(resolve => {
+        viewportElement.addEventListener(
+          'imagerendered',
+          (event) => {
+            resolve((event as CustomEvent<ImageRenderedDetail>).detail);
+          },
+          { once: true }
+        );
       });
     });
   }
