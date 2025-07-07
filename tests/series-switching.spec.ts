@@ -1,5 +1,4 @@
-import { test, expect } from '@playwright/test';
-import { ImageViewerPage } from '../pages/image-viewer-page';
+import { test, expect } from '../fixtures/image-viewer-fixtures';
 
 /*
 3. Switch of Series
@@ -12,66 +11,55 @@ Test that series highlighting (blue selection) updates correctly
 
 
 // Test suite performs validations on correct image loading and data for both series when switching between Series
-// Series highlighting and images being loaded are validated under Feature: Navigation Between Images and Feature: Image Rendering
-// TBD if extending the other test or refactoring to isolate each behaviour
 test.describe('Feature: Switching Between Series', () => {
-  let medicalViewer: ImageViewerPage;
-
-  // Load the app before each test and accept the Welcome disclaimer
-  test.beforeEach(async ({ page }) => {
-    medicalViewer = new ImageViewerPage(page);
-    await medicalViewer.goto();
-    await medicalViewer.closeWelcomePopup();
-    await expect(medicalViewer.welcomePopup).toBeHidden();
-  });
 
   [1, 2].forEach(seriesNumber => {
-    test(`the correct image information is updated and index resets for current series information when switching, starting from Series ${seriesNumber}`, async () => {
+    test(`should load the correct image information navigating through Series ${seriesNumber}`, async ({ viewerPage }) => {
       // Select initial Series and verify highlight
-      const otherSeries = seriesNumber === 1 ? 2 : 1; // hardcoded switch value - to be improved for dynamic number of Series
-      await medicalViewer.selectImageSeries(seriesNumber);
-      await medicalViewer.verifySeriesHighlighted(seriesNumber);
+      await viewerPage.seriesPanel.selectImageSeries(seriesNumber);
+      await viewerPage.seriesPanel.verifySeriesHighlighted(seriesNumber);
 
-      const nrImages = await medicalViewer.getNumberOfImages(seriesNumber);
+      const totalImages = await viewerPage.seriesPanel.getNumberOfImages(seriesNumber);
       // For each rendered image in the selected series, check the current series information in the left panel
-      for (let i = 1; i <= nrImages; i++) {
-        const currentRenderedImage = await medicalViewer.waitForImageRendered();
-        const expectedSeries = currentRenderedImage.series;
-        const expectedIndex = currentRenderedImage.imageIndex + 1;
-        const expectedFormat = currentRenderedImage.imageSource.split('.').pop()?.toUpperCase() || 'UNKNOWN';
-        console.log(currentRenderedImage);
+      for (let i = 1; i <= totalImages; i++) {
+        const imageDetails = await viewerPage.imageViewer.waitForImageRendered();
+        console.log(imageDetails);
 
-        const currentSeriesInformation = medicalViewer.currentSeriesInfo;
+        await viewerPage.seriesPanel.expectSeriesInfoToMatch(imageDetails, totalImages);
 
-        const seriesNameText = await currentSeriesInformation.innerText();
-        expect(seriesNameText).toContain(`Series ${expectedSeries}`);
-        expect(seriesNameText).toContain(expectedFormat);
-
-        const indexText = await currentSeriesInformation.innerText();
-        const match = indexText.match(/Image\s+(\d+)\s+of\s+(\d+)/i);
-        expect(match).not.toBeNull();
-
-        const current = parseInt(match![1]);
-        const total = parseInt(match![2]);
-
-        expect(current).toBe(expectedIndex);
-        expect(total).toBe(nrImages);
-
-        // After validating the data, switch series to verify the index resets to 1, before scrolling back and continuing
-        // Code duplication - to be moved in helper class
-        await medicalViewer.selectImageSeries(otherSeries);
-        const resetSeriesInformation = medicalViewer.currentSeriesInfo;
-        const resetIndexText = await resetSeriesInformation.innerText();
-        const resetMatch = resetIndexText.match(/Image\s+(\d+)\s+of\s+(\d+)/i);
-        const reset = parseInt(resetMatch![1]);
-        expect(reset).toBe(1);
-        await medicalViewer.selectImageSeries(seriesNumber);
-        for (let j = 1; j <= i; j++) {
-          await medicalViewer.scrollMouseWheel('down');
-        }
-
-        await medicalViewer.scrollMouseWheel('down');
+        await viewerPage.imageViewer.scrollMouseWheel('down');
       }
     });
+  });
+
+  test('should reset image index to 1 when switching series', async ({ viewerPage }) => {
+    // Select initial Series and verify highlight
+    await viewerPage.seriesPanel.selectImageSeries(1);
+    await viewerPage.seriesPanel.verifySeriesHighlighted(1);
+
+    // Scroll to third image to have index 2
+    await viewerPage.imageViewer.scrollMouseWheel('down');
+    await viewerPage.imageViewer.scrollMouseWheel('down');
+
+    let imageDetails = await viewerPage.imageViewer.waitForImageRendered();
+    expect(imageDetails.imageIndex).toBe(2);
+
+    await viewerPage.seriesPanel.selectImageSeries(2);
+    imageDetails = await viewerPage.imageViewer.waitForImageRendered();
+    
+    expect(imageDetails.series).toBe(2);
+    expect(imageDetails.imageIndex, 'Index should reset to 1 after switching series').toBe(0);
+  });
+  
+  test('patient information persists when switching between series', async ({ viewerPage }) => {
+    const initialDetails = await viewerPage.imageViewer.waitForImageRendered();
+    const expectedPatientInfo = initialDetails.patientInfo;
+    
+    await viewerPage.patientInfo.expectInfoToMatch(expectedPatientInfo);
+    
+    await viewerPage.seriesPanel.selectImageSeries(2);
+    await viewerPage.imageViewer.waitForImageRendered();
+    
+    await viewerPage.patientInfo.expectInfoToMatch(expectedPatientInfo);
   });
 });
