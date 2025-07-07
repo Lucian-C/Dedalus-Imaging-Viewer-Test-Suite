@@ -7,7 +7,7 @@ Validate that patient name and ID are correctly displayed in the bottom-left ove
 Test that patient information persists across series switches
 */
 
-//Test suite performs visual comparison using PLaywright toHaveScreenshot() method for each of the image for both series
+// Test suite performs validation of Patient Information Overlay data when switching between Series and image navigation
 test.describe('Feature: Patient Information Overlay', () => {
   let medicalViewer: ImageViewerPage;
 
