@@ -13,9 +13,8 @@ export interface ImageRenderedDetail {
 
 export class ImageViewerPage {
   readonly welcomePopup: Locator;
-  readonly welcomePopupAacceptButton: Locator;
-  readonly series1Button: Locator;
-  readonly series2Button: Locator;
+  readonly welcomePopupAcceptButton: Locator;
+  readonly seriesSelectionPanel: Locator;
   readonly currentSeriesInfo: Locator;
   readonly medicalImageViewer: Locator;
   readonly currentImage: Locator;
@@ -23,9 +22,8 @@ export class ImageViewerPage {
 
   constructor(public readonly page: Page) {
     this.welcomePopup = page.getByTestId('welcome-popup-overlay');
-    this.welcomePopupAacceptButton = page.getByTestId('welcome-popup-accept-button');
-    this.series1Button = page.getByTestId('series-1-button');
-    this.series2Button = page.getByTestId('series-2-button');
+    this.welcomePopupAcceptButton = page.getByTestId('welcome-popup-accept-button');
+    this.seriesSelectionPanel = page.getByTestId('series-selection-panel');
     this.currentSeriesInfo = page.getByTestId('current-series-info');
     this.medicalImageViewer = page.getByTestId('medical-image-viewport');
     this.currentImage = page.getByTestId('medical-image');
@@ -37,50 +35,32 @@ export class ImageViewerPage {
   }
 
   async closeWelcomePopup() {
-    await this.welcomePopupAacceptButton.click();
+    await this.welcomePopupAcceptButton.click();
+  }
+
+  async getSeriesButton(seriesNumber: number) {
+    return this.seriesSelectionPanel.getByTestId(`series-${seriesNumber}-button`);
   }
 
   async selectImageSeries(seriesNumber: number) {
-    if (seriesNumber === 1) {
-      await this.series1Button.click();
-    } else {
-      await this.series2Button.click();
-    }
+    const seriesButton = await this.getSeriesButton(seriesNumber);
+    await seriesButton.click();
   }
 
-  //temporary solution to get number of images in a series
-  async getNumberOfImages(seriesNumber: number): Promise<number> {
-    let selectedSeries: Locator;
-    //to do: make it dynamic to support any series number
-    switch (seriesNumber) {
-      case 1:
-        selectedSeries = this.series1Button;
-        break;
-      case 2:
-        selectedSeries = this.series2Button;
-        break;
-      default:
-        throw new Error(`Series ${seriesNumber} is not supported yet.`);
-    }
+  async isSeriesHighlighted(seriesNumber: number) {
+    const seriesButton = await this.getSeriesButton(seriesNumber);
+    await expect(seriesButton).toHaveClass(/\bbg-blue-600\b/);
+  }
 
-    const seriesInfoText = await selectedSeries.innerText();
+  async getNumberOfImages(seriesNumber: number): Promise<number> {
+    const seriesButton = await this.getSeriesButton(seriesNumber);
+
+    const seriesInfoText = await seriesButton.innerText();
     const matchNrImages = seriesInfoText.match(/(\d+)\s+images?/i);
     const imageCount = matchNrImages ? parseInt(matchNrImages[1], 10) : 0;
 
     console.log(`Series ${seriesNumber} has ${imageCount} images.`);
     return imageCount;
-  }
-
-  async isSeriesHighlighted(seriesNumber: number) {
-    if (seriesNumber === 1) {
-      //const series1isHighlighted = await this.series1Button.getAttribute('class');
-      //expect(series1isHighlighted).toContain('bg-blue-600');
-      await expect(this.series1Button).toHaveClass(/\bbg-blue-600\b/);
-    } else {
-      const series2isHighlighted = await this.series2Button.getAttribute('class');
-      expect(series2isHighlighted).toContain('bg-blue-600');
-      // await expect(this.series2Button).toHaveClass('bg-blue-600');
-    }
   }
 
   async compareImages(seriesNumber: number, currentImageIndex: number) {
@@ -92,5 +72,22 @@ export class ImageViewerPage {
   async scrollMouseWheel(direction: 'down' | 'up') {
     await this.medicalImageViewer.hover();
     await this.page.mouse.wheel(0, direction === 'down' ? 10 : -10);
+  }
+
+  async waitForImageToBeRendered(): Promise<ImageRenderedDetail | null> {
+    return await this.page.evaluate(() => {
+      return new Promise<ImageRenderedDetail | null>((resolve) => {
+        const imageViewport = document.querySelector('[data-testid="medical-image-viewport"]');
+
+        if (!imageViewport) return resolve(null);
+
+        const eventHandler = (event: any) => {
+          imageViewport.removeEventListener('imagerendered', eventHandler);
+          resolve(event.detail);
+        };
+
+        imageViewport.addEventListener('imagerendered', eventHandler);
+      });
+    });
   }
 }

@@ -8,7 +8,7 @@ comparison.
 */
 
 //Test suite performs visual comparison using PLaywright toHaveScreenshot() method for each of the image for both series
-test.describe('Imaging Viewer Test Suite', () => {
+test.describe('Feature: Image Rendering', () => {
   let medicalViewer: ImageViewerPage;
 
   // Load the app before each test and accept the Welcome disclaimer
@@ -19,25 +19,13 @@ test.describe('Imaging Viewer Test Suite', () => {
     await expect(medicalViewer.welcomePopup).toBeHidden();
   });
 
-  test.describe('Feature: Image Rendering', () => {
-    test('should render the each image of Series 1 correctly', async () => {
-      await medicalViewer.selectImageSeries(1);
-      await medicalViewer.isSeriesHighlighted(1);
-      const nrImages = await medicalViewer.getNumberOfImages(1);
+  [1, 2].forEach(series => {
+    test(`each image of Series ${series} should be rendered correctly`, async () => {
+      await medicalViewer.selectImageSeries(series);
+      await medicalViewer.isSeriesHighlighted(series);
+      const nrImages = await medicalViewer.getNumberOfImages(series);
       for (let i = 1; i <= nrImages; i++) {
-        await medicalViewer.compareImages(1, i);
-        await medicalViewer.scrollMouseWheel('down');
-      }
-    });
-  });
-
-  test.describe('Feature: Image Rendering', () => {
-    test('should render the each image of Series 2 correctly', async () => {
-      await medicalViewer.selectImageSeries(2);
-      await medicalViewer.isSeriesHighlighted(2);
-      const nrImages = await medicalViewer.getNumberOfImages(2);
-      for (let i = 1; i <= nrImages; i++) {
-        await medicalViewer.compareImages(2, i);
+        await medicalViewer.compareImages(series, i);
         await medicalViewer.scrollMouseWheel('down');
       }
     });
