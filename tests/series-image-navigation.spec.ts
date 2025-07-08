@@ -45,5 +45,10 @@ test.describe('Feature: Navigation Between Images', () => {
         }
       });
     });
+
+    // To Do
+    test(`should load the correct image for Series ${seriesNumber} after navigating using the buttons`, async ({ viewerPage }) => {
+     
+    });
   });
 });

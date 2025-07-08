@@ -6,10 +6,12 @@ Validate that patient name and ID are correctly displayed in the bottom-left ove
 Test that patient information persists across series switches
 */
 
+const seriesToTest: (1 | 2)[] = [1, 2];
+
 // Test suite performs validation of Patient Information Overlay data when switching between Series and image navigation
 test.describe('Feature: Patient Information Overlay', () => {
 
-  [1, 2].forEach(series => {
+  seriesToTest.forEach(series => {
     test(`patient information overlay displays correct data while navigating images for Series ${series}`, async ({ viewerPage }) => {
       await viewerPage.seriesPanel.selectImageSeries(series);
       await viewerPage.seriesPanel.isSeriesHighlighted(series);

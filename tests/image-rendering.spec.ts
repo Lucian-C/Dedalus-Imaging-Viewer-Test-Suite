@@ -6,10 +6,12 @@ Verify that images load correctly from both series (Series 1: JPEG format, Serie
 comparison.
 */
 
+const seriesToTest: (1 | 2)[] = [1, 2];
+
 //Test suite performs visual comparison using PLaywright toHaveScreenshot() method for each of the image for both series
 test.describe('Feature: Image Rendering', () => {
 
-  [1, 2].forEach(series => {
+  seriesToTest.forEach(series => {
     test(`each image of Series ${series} should be rendered correctly`, async ({ viewerPage }) => {
       await viewerPage.seriesPanel.selectImageSeries(series);
       await viewerPage.seriesPanel.isSeriesHighlighted(series);

@@ -9,11 +9,14 @@ Verify that the correct images are loaded for each series
 Test that series highlighting (blue selection) updates correctly
 */
 
+//To Do: Add visual regression for selected series.
+
+const seriesToTest: (1 | 2)[] = [1, 2];
 
 // Test suite performs validations on correct image loading and data for both series when switching between Series
 test.describe('Feature: Switching Between Series', () => {
 
-  [1, 2].forEach(seriesNumber => {
+  seriesToTest.forEach(seriesNumber => {
     test(`should load the correct image information navigating through Series ${seriesNumber}`, async ({ viewerPage }) => {
       // Select initial Series and verify highlight
       await viewerPage.seriesPanel.selectImageSeries(seriesNumber);
