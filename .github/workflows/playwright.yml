@@ -41,12 +41,15 @@ jobs:
       run: npx playwright install --with-deps
 
     - name: Run Playwright tests
+      env:
+        BROWSER: ${{ github.event_name == 'workflow_dispatch' && inputs.browser || 'all' }}
+        UPDATE_SNAPSHOTS: ${{ github.event_name == 'workflow_dispatch' && inputs.update_snapshots || 'false' }}
       run: |
           CMD="npx playwright test"
-          if [[ "${{ github.event.inputs.browser }}" != "all" ]]; then
-            CMD="$CMD --project=${{ github.event.inputs.browser }}"
+          if [[ "$BROWSER" != "all" ]]; then
+            CMD="$CMD --project=$BROWSER"
           fi
-          if [[ "${{ github.event.inputs.update_snapshots }}" == "true" ]]; then
+          if [[ "$UPDATE_SNAPSHOTS" == "true" ]]; then
             CMD="$CMD --update-snapshots"
           fi
           echo "Running: $CMD"
