@@ -41,6 +41,7 @@ jobs:
       run: npx playwright install --with-deps
 
     - name: Run Playwright tests
+      shell: bash
       env:
         BROWSER: ${{ github.event_name == 'workflow_dispatch' && inputs.browser || 'all' }}
         UPDATE_SNAPSHOTS: ${{ github.event_name == 'workflow_dispatch' && inputs.update_snapshots || 'false' }}
@@ -56,13 +57,14 @@ jobs:
           eval $CMD
 
     - name: Generate Allure report
+      if: always()
       run: npx allure generate ./allure-results -o ./allure-report
 
     - name: Upload test reports    
       if: always()
       uses: actions/upload-artifact@v4
       with:
-        name: test-reports
+        name: test-reports-${{ matrix.os }}
         path: |
           playwright-report/
           allure-report/
