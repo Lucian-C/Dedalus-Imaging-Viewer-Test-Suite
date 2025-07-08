@@ -6,11 +6,29 @@ on:
   pull_request:
     branches: [ main, master ]
   workflow_dispatch:
+    inputs:
+      update_snapshots:
+        description: 'Update baseline screenshots?'
+        required: false
+        default: 'false'
+        type: choice
+        options: ['true', 'false']
+
+      browser:
+        description: 'Browser'
+        required: false
+        default: 'all'
+        type: choice
+        options: ['all', 'chromium', 'firefox']
 
 jobs:
-  test:
+  test-execution:
     timeout-minutes: 60
-    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+
+    runs-on: ${{ matrix.os }}
     steps:
     - uses: actions/checkout@v4
     - uses: actions/setup-node@v4
@@ -23,10 +41,20 @@ jobs:
       run: npx playwright install --with-deps
 
     - name: Run Playwright tests
-      run: npx playwright test
+      run: |
+          CMD="npx playwright test"
+          if [[ -n "${{ github.event.inputs.browser }}" != "all"]]; then
+            CMD="$CMD --project=${{ github.event.inputs.browser }}"
+          fi
+          if [[ "${{ github.event.inputs.update_snapshots }}" == "true" ]]; then
+            CMD="$CMD --update-snapshots"
+          fi
+          echo "Running: $CMD"
+          eval $CMD
 
     - name: Generate Allure report
-      run: npx allure generate ./allure-results --clean -o ./allure-report
+      run: npx allure generate ./allure-results -o ./allure-report
+
     - name: Upload test reports    
       if: always()
       uses: actions/upload-artifact@v4
