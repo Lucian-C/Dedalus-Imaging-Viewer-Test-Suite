@@ -43,10 +43,10 @@ jobs:
     - name: Run Playwright tests
       run: |
           CMD="npx playwright test"
-          if [[ -n "${{ github.event.inputs.browser }}" != "all"]]; then
+          if [ "${{ github.event.inputs.browser }}" != "all" ]; then
             CMD="$CMD --project=${{ github.event.inputs.browser }}"
           fi
-          if [[ "${{ github.event.inputs.update_snapshots }}" == "true" ]]; then
+          if [ "${{ github.event.inputs.update_snapshots }}" == "true" ]; then
             CMD="$CMD --update-snapshots"
           fi
           echo "Running: $CMD"
