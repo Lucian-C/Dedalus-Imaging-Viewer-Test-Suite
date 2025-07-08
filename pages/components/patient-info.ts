@@ -5,11 +5,13 @@ export class PatientInfoOverlay {
   readonly overlay: Locator;
   private readonly patientName: Locator;
   private readonly patientId: Locator;
+  private readonly patientSliceInfo: Locator;
 
-   constructor(page: Page) {
+  constructor(page: Page) {
     this.overlay = page.getByTestId('patient-information-overlay');
     this.patientName = this.overlay.getByTestId('patient-name');
     this.patientId = this.overlay.getByTestId('patient-id');
+    this.patientSliceInfo = this.overlay.getByTestId('slice-information');
   }
 
   async getPatientName(): Promise<string> {
@@ -25,11 +27,15 @@ export class PatientInfoOverlay {
     await expect(this.patientId).toHaveText(expected.id);
   }
 
-  async validatePatientInfo(expected: ImageRenderedDetails) {
-    const name = await this.patientName.innerText();
-    const id = await this.patientId.innerText();
+  async validatePatientInfo(expected: ImageRenderedDetails, expectedSlices: number) {
+    const sliceText = await this.patientSliceInfo.innerText();
+    const slicesParts = sliceText.split('/');
+    const currentSlice = parseInt(slicesParts[0].trim(), 10);
+    const totalSlices = parseInt(slicesParts[1].trim(), 10);
 
-    expect(name).toContain(expected.patientInfo.name);
-    expect(id).toContain(expected.patientInfo.id);
+    expect(this.patientName).toHaveText(expected.patientInfo.name);
+    expect(this.patientId).toHaveText(expected.patientInfo.id);
+    expect(currentSlice).toBe(expected.imageIndex + 1);
+    expect(totalSlices).toBe(expectedSlices);
   }
 }

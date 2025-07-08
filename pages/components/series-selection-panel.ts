@@ -18,11 +18,6 @@ export class SeriesPanel {
     return this.seriesSelectionPanel.getByTestId(`series-${seriesNumber}-button`);
   }
 
-  async getNumberOfSeries(): Promise<number> {
-    const buttons = await this.page.locator('[data-testid^="series-"]').all();
-    return buttons.length;
-  }
-
   async selectImageSeries(seriesNumber: number) {
     const seriesButton = await this.getSeriesButton(seriesNumber);
     await seriesButton.click();

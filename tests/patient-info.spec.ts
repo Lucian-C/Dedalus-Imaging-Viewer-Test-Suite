@@ -16,17 +16,12 @@ test.describe('Feature: Patient Information Overlay', () => {
       await viewerPage.seriesPanel.selectImageSeries(series);
       await viewerPage.seriesPanel.isSeriesHighlighted(series);
 
-      const patientInfoOverlay = viewerPage.patientInfo.overlay;
-      const patientName = patientInfoOverlay.getByTestId('patient-name');
-      const patientId = patientInfoOverlay.getByTestId('patient-id');
-
-      const nrImages = await viewerPage.seriesPanel.getNumberOfImages(series);
-      for (let i = 1; i <= nrImages; i++) {
+      const totalImages = await viewerPage.seriesPanel.getNumberOfImages(series);
+      for (let i = 1; i <= totalImages; i++) {
         const currentRenderedImage = await viewerPage.imageViewer.waitForImageRendered();
         console.log(currentRenderedImage);
 
-        expect(patientName).toHaveText(currentRenderedImage.patientInfo.name);
-        expect(patientId).toHaveText(currentRenderedImage.patientInfo.id);
+        await viewerPage.patientInfo.validatePatientInfo(currentRenderedImage, totalImages);
 
         await viewerPage.imageViewer.scrollMouseWheel('down');
       }
@@ -37,28 +32,25 @@ test.describe('Feature: Patient Information Overlay', () => {
     //Start with Series 1
     await viewerPage.seriesPanel.selectImageSeries(1);
     await viewerPage.seriesPanel.isSeriesHighlighted(1);
-
-    const patientInfoOverlay = viewerPage.patientInfo.overlay;
-    const patientName = patientInfoOverlay.getByTestId('patient-name');
-    const patientId = patientInfoOverlay.getByTestId('patient-id');
+    const totalImages = await viewerPage.seriesPanel.getNumberOfImages(1);
+    const initialPatientName= viewerPage.patientInfo.getPatientName;
+    const initialPatientId = viewerPage.patientInfo.getPatientId;
 
     const currentRenderedImage = await viewerPage.imageViewer.waitForImageRendered();
     console.log(currentRenderedImage);
 
-    expect(patientName).toHaveText(currentRenderedImage.patientInfo.name);
-    expect(patientId).toHaveText(currentRenderedImage.patientInfo.id);
+    await viewerPage.patientInfo.validatePatientInfo(currentRenderedImage, totalImages);
 
     //switch to Series 2
     await viewerPage.seriesPanel.selectImageSeries(2);
     await viewerPage.seriesPanel.isSeriesHighlighted(2);
- 
-    //Instantiate again the Patient Information Overlay to verify the new data
-    const newPatientInfoOverlay = viewerPage.patientInfo.overlay;
-    const newPatientName = newPatientInfoOverlay.getByTestId('patient-name').innerText;
-    const newPatientId = patientInfoOverlay.getByTestId('patient-id').innerText;
 
-    expect(newPatientName).toBe(patientName.innerText);
-    expect(newPatientId).toBe(patientId.innerText);
+    //Get again the Patient Information Overlay Info to verify the new data aginst the initial data
+    const newPatientName = viewerPage.patientInfo.getPatientName;
+    const newPatientId = viewerPage.patientInfo.getPatientId;
+
+    expect(newPatientName).toBe(initialPatientName);
+    expect(newPatientId).toBe(initialPatientId);
   });
 
   //nice to have

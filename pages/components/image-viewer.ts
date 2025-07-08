@@ -6,14 +6,12 @@ export class ImageViewer {
   readonly imageViewport: Locator;
   readonly image: Locator;
   readonly navInstructions: Locator;
-  readonly imageIndexDisplay: Locator;
 
   constructor(page: Page) {
     this.page = page;
     this.imageViewport = page.getByTestId('medical-image-viewport');
     this.image = page.getByTestId('medical-image');
     this.navInstructions = page.getByTestId('navigation-instructions');
-    this.imageIndexDisplay = this.imageViewport.getByTestId('image-index-display');
   }
 
   async waitForImageRendered(): Promise<ImageRenderedDetails> {
@@ -35,10 +33,6 @@ export class ImageViewer {
     await expect(this.image).toHaveScreenshot(`${seriesNumber}_${currentImageIndex}.png`);
   }
 
-  async expectImageIndex(expectedText: string) {
-    await expect(this.imageIndexDisplay).toHaveText(expectedText);
-  }
-
   async scrollMouseWheel(direction: 'down' | 'up') {
     await this.imageViewport.hover();
     await this.page.mouse.wheel(0, direction === 'down' ? 100 : -100);
@@ -51,5 +45,10 @@ export class ImageViewer {
     expect(imageAltText, `Image alt text should contain slice with index ${renderedDetails.imageIndex + 1}`).toContain(`slice ${renderedDetails.imageIndex + 1}`);
     expect(imageAltText, `Image alt text should contain Series number ${renderedDetails.series}`).toContain(`Series ${renderedDetails.series}`);
     expect(imageSource, `Image src should match ${renderedDetails.imageSource}`).toContain(renderedDetails.imageSource);
+  }
+
+  async navigationInstructionsIsVisible(){
+    await expect(this.navInstructions).toBeVisible();
+    await expect(this.navInstructions).toHaveText('Use mouse wheel to navigate through the stack');
   }
 }

@@ -19,26 +19,27 @@ test.describe('Feature: Navigation Between Images', () => {
         await viewerPage.seriesPanel.selectImageSeries(seriesNumber);
         await viewerPage.seriesPanel.verifySeriesHighlighted(seriesNumber);
 
-        const nrImages = await viewerPage.seriesPanel.getNumberOfImages(seriesNumber);
+        const totalImages = await viewerPage.seriesPanel.getNumberOfImages(seriesNumber);
         if (direction === 'down') {
-          for (let i = 1; i <= nrImages; i++) {
+          for (let i = 1; i <= totalImages; i++) {
             const currentRenderedImageDetails = await viewerPage.imageViewer.waitForImageRendered();
-            console.log(currentRenderedImageDetails);
 
             await viewerPage.imageViewer.expectImageAttributesToMatch(currentRenderedImageDetails);
+            await viewerPage.imageViewer.navigationInstructionsIsVisible();
 
             await viewerPage.imageViewer.scrollMouseWheel(direction);
           }
         }
         else {
-          for (let i = 1; i <= nrImages; i++) {
+          for (let i = 1; i <= totalImages; i++) {
             await viewerPage.imageViewer.scrollMouseWheel('down');
           }
-          for (let i = nrImages - 1; i >= 1; i--) {
+          for (let i = totalImages - 1; i >= 1; i--) {
             const currentRenderedImageDetails = await viewerPage.imageViewer.waitForImageRendered();
             console.log(currentRenderedImageDetails);
 
-            await viewerPage.imageViewer.expectImageAttributesToMatch(currentRenderedImageDetails);
+            await viewerPage.imageViewer.expectImageAttributesToMatch(currentRenderedImageDetails);            
+            await viewerPage.imageViewer.navigationInstructionsIsVisible();
 
             await viewerPage.imageViewer.scrollMouseWheel(direction);
           }
@@ -46,9 +47,42 @@ test.describe('Feature: Navigation Between Images', () => {
       });
     });
 
-    // To Do
+    // Navigate through the series images using the Navigation buttons
     test(`should load the correct image for Series ${seriesNumber} after navigating using the buttons`, async ({ viewerPage }) => {
-     
+      await viewerPage.seriesPanel.selectImageSeries(seriesNumber);
+      await viewerPage.seriesPanel.verifySeriesHighlighted(seriesNumber);
+
+      const totalImages = await viewerPage.seriesPanel.getNumberOfImages(seriesNumber);
+
+      // First navigate towards the end = click "Next" button
+      for (let i = 1; i <= totalImages; i++) {
+        const currentRenderedImageDetails = await viewerPage.imageViewer.waitForImageRendered();
+        console.log(currentRenderedImageDetails);
+
+        await viewerPage.imageViewer.expectImageAttributesToMatch(currentRenderedImageDetails);
+
+        if (i < totalImages) {
+          await viewerPage.navigationButtons.nextImage();
+        }
+      }
+      // Validate Next button is disabled 
+      await viewerPage.navigationButtons.nextIsDisabled();
+
+      // Navigate back to the start = click "Previous" button 
+      for (let i = totalImages; i > 1; i--) {
+        
+        if (i > 1) {
+          await viewerPage.navigationButtons.previousImage();
+        }
+
+        const currentRenderedImageDetails = await viewerPage.imageViewer.waitForImageRendered();
+        console.log(currentRenderedImageDetails);
+
+        await viewerPage.imageViewer.expectImageAttributesToMatch(currentRenderedImageDetails);
+      }
+
+      // Validate Previous button is disabled 
+      await viewerPage.navigationButtons.previousIsDisabled();
     });
   });
 });
