@@ -28,6 +28,11 @@ export class SeriesPanel {
     await expect(seriesButton).toHaveClass(/\bbg-blue-600\b/);
   }
 
+  async isSeriesHighlightedWithScreenshot(seriesNumber: number) {
+    await this.verifySeriesHighlighted(seriesNumber);
+    await expect(this.seriesSelectionPanel).toHaveScreenshot(`${seriesNumber}-Series-isBlueInPanel.png`);
+  }
+
   //compared with isSeriesHighlighted, it also checks that the other series is gray
   //nice to have as alternative: visual testing
   //this method also supports dynamic number of series

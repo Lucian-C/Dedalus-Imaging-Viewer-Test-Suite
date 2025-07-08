@@ -20,7 +20,7 @@ test.describe('Feature: Switching Between Series', () => {
     test(`should load the correct image information navigating through Series ${seriesNumber}`, async ({ viewerPage }) => {
       // Select initial Series and verify highlight
       await viewerPage.seriesPanel.selectImageSeries(seriesNumber);
-      await viewerPage.seriesPanel.verifySeriesHighlighted(seriesNumber);
+      await viewerPage.seriesPanel.isSeriesHighlightedWithScreenshot(seriesNumber);
 
       const totalImages = await viewerPage.seriesPanel.getNumberOfImages(seriesNumber);
       // For each rendered image in the selected series, check the current series information in the left panel
@@ -38,7 +38,7 @@ test.describe('Feature: Switching Between Series', () => {
   test('should reset image index to 1 when switching series', async ({ viewerPage }) => {
     // Select initial Series and verify highlight
     await viewerPage.seriesPanel.selectImageSeries(1);
-    await viewerPage.seriesPanel.verifySeriesHighlighted(1);
+    await viewerPage.seriesPanel.isSeriesHighlightedWithScreenshot(1);
 
     // Scroll to third image to have index 2
     await viewerPage.imageViewer.scrollMouseWheel('down');
@@ -47,19 +47,24 @@ test.describe('Feature: Switching Between Series', () => {
     let imageDetails = await viewerPage.imageViewer.waitForImageRendered();
     expect(imageDetails.imageIndex).toBe(2);
 
+    // Switch to Series 2 and verify highlight
     await viewerPage.seriesPanel.selectImageSeries(2);
     imageDetails = await viewerPage.imageViewer.waitForImageRendered();
     
+    // Verify index reseting
     expect(imageDetails.series).toBe(2);
     expect(imageDetails.imageIndex, 'Index should reset to 1 after switching series').toBe(0);
   });
   
   test('patient information persists when switching between series', async ({ viewerPage }) => {
+    // Select initial Series and get patient Info
+    await viewerPage.seriesPanel.selectImageSeries(1);
     const initialDetails = await viewerPage.imageViewer.waitForImageRendered();
     const expectedPatientInfo = initialDetails.patientInfo;
     
-    await viewerPage.patientInfo.expectInfoToMatch(expectedPatientInfo);
-    
+    await viewerPage.patientInfo.expectInfoToMatch(expectedPatientInfo);    
+
+    // Switch to Series 2 and verify patient Info is the same
     await viewerPage.seriesPanel.selectImageSeries(2);
     await viewerPage.imageViewer.waitForImageRendered();
     
