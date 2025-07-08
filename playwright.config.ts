@@ -7,12 +7,16 @@ export default defineConfig({
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
   workers: process.env.CI ? 4 : undefined,
-  reporter: 'html',
+  reporter: [
+    ['html'],
+    ['github'],
+    ["allure-playwright"]
+  ],
   use: {
     baseURL: 'https://diit-playwright-qa-test.vercel.app',
     trace: 'on-first-retry',
   },
-
+  timeout: 60000,
   projects: [
     {
       name: 'chromium',
