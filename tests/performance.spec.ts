@@ -20,7 +20,7 @@ test.describe('Performance Tests: ', () => {
           //Validate the loadDelay value for each image in the series
           expect(iamgeDetails.loadDelay, `loadDelay for Image ${i} in Series 1 should be under`).toBeLessThan(expectedTime);
 
-          await viewerPage.imageViewer.scrollMouseWheelWithLoadingTime('down');
+          await viewerPage.imageViewer.scrollMouseWheel('down');
         }
 
       });
