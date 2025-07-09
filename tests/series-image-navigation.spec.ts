@@ -23,6 +23,7 @@ test.describe('Feature: Navigation Between Images', () => {
         if (direction === 'down') {
           for (let i = 1; i <= totalImages; i++) {
             const currentRenderedImageDetails = await viewerPage.imageViewer.waitForImageRendered();
+            console.log(`Series ${seriesNumber}, Scrolling in direction ${direction}, Image details:`, currentRenderedImageDetails);
 
             await viewerPage.imageViewer.expectImageAttributesToMatch(currentRenderedImageDetails);
             await viewerPage.imageViewer.navigationInstructionsIsVisible();
@@ -36,9 +37,9 @@ test.describe('Feature: Navigation Between Images', () => {
           }
           for (let i = totalImages - 1; i >= 1; i--) {
             const currentRenderedImageDetails = await viewerPage.imageViewer.waitForImageRendered();
-            console.log(currentRenderedImageDetails);
+            console.log(`Series ${seriesNumber}, Scrolling in direction ${direction}, Image details:`, currentRenderedImageDetails);
 
-            await viewerPage.imageViewer.expectImageAttributesToMatch(currentRenderedImageDetails);            
+            await viewerPage.imageViewer.expectImageAttributesToMatch(currentRenderedImageDetails);
             await viewerPage.imageViewer.navigationInstructionsIsVisible();
 
             await viewerPage.imageViewer.scrollMouseWheel(direction);
@@ -57,7 +58,7 @@ test.describe('Feature: Navigation Between Images', () => {
       // First navigate towards the end = click "Next" button
       for (let i = 1; i <= totalImages; i++) {
         const currentRenderedImageDetails = await viewerPage.imageViewer.waitForImageRendered();
-        console.log(currentRenderedImageDetails);
+        console.log(`Button navigation, 'Next': Series ${seriesNumber}, Image ${i}:`, currentRenderedImageDetails);
 
         await viewerPage.imageViewer.expectImageAttributesToMatch(currentRenderedImageDetails);
 
@@ -70,18 +71,18 @@ test.describe('Feature: Navigation Between Images', () => {
 
       // Navigate back to the start = click "Previous" button 
       for (let i = totalImages; i > 1; i--) {
-        
+
         if (i > 1) {
           await viewerPage.navigationButtons.previousImage();
         }
 
         const currentRenderedImageDetails = await viewerPage.imageViewer.waitForImageRendered();
-        console.log(currentRenderedImageDetails);
+        console.log(`Button navigation, 'Previous': Series ${seriesNumber}, Image ${i}:`, currentRenderedImageDetails);
 
         await viewerPage.imageViewer.expectImageAttributesToMatch(currentRenderedImageDetails);
       }
 
-      // Validate Previous button is disabled 
+      // Validate Previous button is disabled       
       await viewerPage.navigationButtons.previousIsDisabled();
     });
   });

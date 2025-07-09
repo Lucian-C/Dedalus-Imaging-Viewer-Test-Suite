@@ -26,7 +26,7 @@ test.describe('Feature: Switching Between Series', () => {
       // For each rendered image in the selected series, check the current series information in the left panel
       for (let i = 1; i <= totalImages; i++) {
         const imageDetails = await viewerPage.imageViewer.waitForImageRendered();
-        console.log(imageDetails);
+        console.log('Current image details:', imageDetails);
 
         await viewerPage.seriesPanel.expectSeriesInfoToMatch(imageDetails, totalImages);
 
@@ -45,29 +45,31 @@ test.describe('Feature: Switching Between Series', () => {
     await viewerPage.imageViewer.scrollMouseWheel('down');
 
     let imageDetails = await viewerPage.imageViewer.waitForImageRendered();
-    expect(imageDetails.imageIndex).toBe(2);
+    console.log('After scrolling, image details:', imageDetails);
+    expect(imageDetails.imageIndex, 'Image index should be 2 after two scrolls').toBe(2);
 
     // Switch to Series 2 and verify highlight
     await viewerPage.seriesPanel.selectImageSeries(2);
     imageDetails = await viewerPage.imageViewer.waitForImageRendered();
-    
+
     // Verify index reseting
-    expect(imageDetails.series).toBe(2);
-    expect(imageDetails.imageIndex, 'Index should reset to 1 after switching series').toBe(0);
+    expect(imageDetails.series, 'Series should be 2 after switching').toBe(2);
+    expect(imageDetails.imageIndex, 'Index should reset to first one after switching series').toBe(0);
   });
-  
+
   test('patient information persists when switching between series', async ({ viewerPage }) => {
     // Select initial Series and get patient Info
     await viewerPage.seriesPanel.selectImageSeries(1);
     const initialDetails = await viewerPage.imageViewer.waitForImageRendered();
     const expectedPatientInfo = initialDetails.patientInfo;
-    
-    await viewerPage.patientInfo.expectInfoToMatch(expectedPatientInfo);    
+    console.log('Initial patient info:', expectedPatientInfo);
+
+    await viewerPage.patientInfo.expectInfoToMatch(expectedPatientInfo);
 
     // Switch to Series 2 and verify patient Info is the same
     await viewerPage.seriesPanel.selectImageSeries(2);
     await viewerPage.imageViewer.waitForImageRendered();
-    
+
     await viewerPage.patientInfo.expectInfoToMatch(expectedPatientInfo);
   });
 });

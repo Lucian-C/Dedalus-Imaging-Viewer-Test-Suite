@@ -19,7 +19,7 @@ test.describe('Feature: Patient Information Overlay', () => {
       const totalImages = await viewerPage.seriesPanel.getNumberOfImages(series);
       for (let i = 1; i <= totalImages; i++) {
         const currentRenderedImage = await viewerPage.imageViewer.waitForImageRendered();
-        console.log(currentRenderedImage);
+        console.log(`Rendered image details for Series ${series}, Image ${i}:`, currentRenderedImage);
 
         await viewerPage.patientInfo.validatePatientInfo(currentRenderedImage, totalImages);
 
@@ -33,11 +33,11 @@ test.describe('Feature: Patient Information Overlay', () => {
     await viewerPage.seriesPanel.selectImageSeries(1);
     await viewerPage.seriesPanel.isSeriesHighlighted(1);
     const totalImages = await viewerPage.seriesPanel.getNumberOfImages(1);
-    const initialPatientName= viewerPage.patientInfo.getPatientName;
+    const initialPatientName = viewerPage.patientInfo.getPatientName;
     const initialPatientId = viewerPage.patientInfo.getPatientId;
 
     const currentRenderedImage = await viewerPage.imageViewer.waitForImageRendered();
-    console.log(currentRenderedImage);
+    console.log('Rendered image details for Series 1:', currentRenderedImage);
 
     await viewerPage.patientInfo.validatePatientInfo(currentRenderedImage, totalImages);
 
@@ -49,8 +49,8 @@ test.describe('Feature: Patient Information Overlay', () => {
     const newPatientName = viewerPage.patientInfo.getPatientName;
     const newPatientId = viewerPage.patientInfo.getPatientId;
 
-    expect(newPatientName).toBe(initialPatientName);
-    expect(newPatientId).toBe(initialPatientId);
+    expect(newPatientName, 'Patient name should persist after switching series').toBe(initialPatientName);
+    expect(newPatientId, 'Patient ID should persist after switching series').toBe(initialPatientId);
   });
 
   //nice to have

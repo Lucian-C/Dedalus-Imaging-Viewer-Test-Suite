@@ -47,11 +47,46 @@ test.describe('Performance Tests: ', () => {
         console.log(`Navigation of ${totalImages} images took ${totalTime.toFixed(2)}ms`);
 
         // Check that current image is the last one based on index
-        expect(finalImageDetails.imageIndex).toBe(totalImages - 1);
+         expect(finalImageDetails.imageIndex, `Expected last image index to be ${totalImages - 1}`).toBe(totalImages - 1);
         
-        // Validate the total time
-        expect(totalTime).toBeLessThan(expectedTimeDuration);
+        // Validate the total time 
+        expect(totalTime, `Expected navigation time to be less than ${expectedTimeDuration}ms`).toBeLessThan(expectedTimeDuration);
+      
       });
+    });
+    
+    test(`should record image network download times for Series ${seriesNumber}`, async ({ viewerPage }) => {
+      await viewerPage.seriesPanel.selectImageSeries(seriesNumber);
+      const totalImages = await viewerPage.seriesPanel.getNumberOfImages(seriesNumber);
+
+      const imageDownloadTimings: { url: string, duration: number }[] = [];
+      const requestStartTimes = new Map<string, number>();
+
+      viewerPage.page.on('request', request => {
+        if (request.resourceType() === 'image') {
+          requestStartTimes.set(request.url(), Date.now());
+        }
+      });
+
+      viewerPage.page.on('response', response => {
+        if (response.request().resourceType() === 'image') {
+          const start = requestStartTimes.get(response.url());
+          if (start) {
+            const downloadDuration = Date.now() - start;
+            imageDownloadTimings.push({ url: response.url(), duration: downloadDuration });
+            console.log(`Image ${response.url()} downloaded in ${downloadDuration} ms`);
+          }
+        }
+      });
+
+      for (let i = 1; i <= totalImages; i++) {
+        await viewerPage.imageViewer.waitForImageRendered();
+        await viewerPage.imageViewer.scrollMouseWheel('down');
+      }
+
+      imageDownloadTimings.forEach(img =>
+        expect(img.duration, `Image ${img.url} should download in under 1000ms`).toBeLessThan(1000)
+      );
     });
   });
 });
